@@ -81,20 +81,14 @@ body {
 
 # ---------------- HEADER ----------------
 st.markdown("<div class='title'>✈️ Flight Delay Predictor</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>AI-powered smart flight delay prediction dashboard</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>AI-powered flight delay prediction system</div>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("⚙️ Settings")
-
+st.sidebar.title("Settings")
 show_chart = st.sidebar.checkbox("Show Charts", True)
-show_probability = st.sidebar.checkbox("Show Probability Meter", True)
 
-# ---------------- TABS ----------------
-tab1, tab2, tab3 = st.tabs(["🧾 Input Form", "📊 Dashboard", "ℹ️ About"])
-
-# ---------------- INPUT DATA ----------------
-with tab1:
-
+# ---------------- INPUT UI ----------------
+with st.container():
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -120,7 +114,9 @@ with tab1:
 
 # ---------------- ENCODING ----------------
 airline_map = {"IndiGo":0,"Air India":1,"SpiceJet":2,"Vistara":3}
+
 airport_map = {"DEL":0,"BOM":1,"BLR":2,"HYD":3,"MAA":4}
+
 day_map = {
     "Monday":0,"Tuesday":1,"Wednesday":2,
     "Thursday":3,"Friday":4,"Saturday":5,"Sunday":6
@@ -128,6 +124,7 @@ day_map = {
 
 dep_hour = departure_time.hour
 
+# ---------------- INPUT ARRAY (FIXED) ----------------
 input_data = np.array([[
     year,
     month,
@@ -149,72 +146,24 @@ if predict:
     except:
         probability = 0.5
 
-    st.session_state["prediction"] = prediction
-    st.session_state["probability"] = probability
+    st.markdown("---")
 
     if prediction == 1:
         st.markdown("<div class='fail-box'>⚠️ Flight WILL BE DELAYED</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div class='success-box'>✅ Flight WILL NOT BE DELAYED</div>", unsafe_allow_html=True)
 
-    st.write("Confidence Score:", round(probability*100,2), "%")
+    st.write("Confidence:", round(probability*100, 2), "%")
 
-    # Progress bar
-    if show_probability:
-        st.progress(float(probability))
+    # ---------------- CHART ----------------
+    if show_chart:
+        st.subheader("Prediction Chart")
 
-# ---------------- DASHBOARD ----------------
-with tab2:
-
-    st.subheader("📊 Prediction Analytics")
-
-    if "prediction" in st.session_state:
-
-        prob = st.session_state["probability"]
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.write("### Delay Probability")
-
-            fig, ax = plt.subplots()
-            ax.pie([prob, 1-prob],
-                   labels=["Delayed", "On Time"],
-                   autopct="%1.1f%%",
-                   colors=["red","green"])
-            st.pyplot(fig)
-
-        with col2:
-            st.write("### Risk Level")
-
-            st.bar_chart({
-                "Risk": [prob * 100],
-                "Safe": [(1 - prob) * 100]
-            })
-
-    else:
-        st.info("Run a prediction first to see dashboard")
-
-# ---------------- ABOUT ----------------
-with tab3:
-
-    st.write("""
-    ### ✈️ Flight Delay Predictor
-
-    This is an AI-powered Streamlit application that predicts
-    whether a flight will be delayed based on:
-
-    - Airline
-    - Airports
-    - Date & Time
-    - Weekday
-
-    ### Features:
-    - Machine Learning Model
-    - Interactive Dashboard
-    - Charts & Analytics
-    - Modern UI Design
-    - Real-time Prediction
-
-    """)
-
+        fig, ax = plt.subplots()
+        ax.pie(
+            [probability, 1-probability],
+            labels=["Delayed", "On Time"],
+            autopct="%1.1f%%",
+            colors=["red","green"]
+        )
+        st.pyplot(fig)
